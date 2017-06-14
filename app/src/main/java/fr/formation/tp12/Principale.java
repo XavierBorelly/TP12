@@ -1,10 +1,17 @@
 package fr.formation.tp12;
 
+import android.content.Intent;
 import android.database.sqlite.SQLiteException;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.view.View;
+import android.support.design.widget.FloatingActionButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import fr.formation.tp12.database.datasource.DataSource;
@@ -19,6 +26,21 @@ public class Principale extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_principale);
 
+        Intent i = getIntent();
+        String newPatient = "";
+        newPatient = i.getStringExtra("name");
+
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Intent intent = new Intent(Principale.this, add_new_user.class);
+                startActivity(intent);
+            }
+        });
+
         // Create or retrieve the database
         try {
             dataSource = new DataSource<>(this, User.class);
@@ -29,32 +51,25 @@ public class Principale extends AppCompatActivity {
         // open the database
         openDB();
 
-        // Insert a new record
-        // -------------------
-        User user = new User();
-        user.setNom("Tintin");
-        try {
-            insertRecord(user);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        if(newPatient != null) {
+            // Insert a new record
+            // -------------------
+            User user = new User();
+            user.setNom(newPatient);
+            try {
+                insertRecord(user);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-        // update that line
-        // ----------------
-        try {
-            user.setNom("Bidochon");
-            updateRecord(user);
-        } catch (Exception e) {
-            e.printStackTrace();
+            Toast.makeText(this, newPatient,
+                    Toast.LENGTH_LONG).show();
+
         }
 
         // Query that line
         // ---------------
         queryTheDatabase();
-
-        // And then delete it:
-        // -------------------
-        //deleteRecord(user);
     }
 
     @Override
@@ -134,18 +149,21 @@ public class Principale extends AppCompatActivity {
 
     private void displayResults(List<User> users) {
 
+        List<String> listPatient = new ArrayList<>();
         int count = 0;
         for (User user : users
                 ) {
-            Toast.makeText(
-                    this,
-                    "Utilisateur :" + user.getNom() + "("
-                            + user.getId() + ")", Toast.LENGTH_LONG).show();
+            //Toast.makeText(this,"Utilisateur :" + user.getNom() + "("+ user.getId() + ")", Toast.LENGTH_LONG).show();
             count++;
-        }
-        Toast.makeText(this,
-                "The number of elements retrieved is " + count,
-                Toast.LENGTH_LONG).show();
 
+            listPatient.add("Patien : " + user.getNom());
+        }
+        //Toast.makeText(this, "The number of elements retrieved is " + count, Toast.LENGTH_LONG).show();
+
+        RecyclerView patients = (RecyclerView) findViewById(R.id.patient);
+        RecyclerSimpleViewAdapter adapter = new RecyclerSimpleViewAdapter(listPatient, android.R.layout.simple_list_item_1);
+        patients.setAdapter(adapter);
+        patients.setLayoutManager(new LinearLayoutManager(this));
     }
+
 }
